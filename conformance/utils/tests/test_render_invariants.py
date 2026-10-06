@@ -150,7 +150,8 @@ def test_retained_stream_regression_captures_preserve_semantics(case_id, familie
     versions = _dynamo_version_dirs()
     assert versions, "no retained Dynamo stream captures are available"
     captures_found = 0
-    for version, root in versions:
+    captured_families = set()
+    for _, root in versions:
         found = {}
         for path in root.glob("*/*.yaml"):
             document = yaml.safe_load(path.read_text())
@@ -167,11 +168,10 @@ def test_retained_stream_regression_captures_preserve_semantics(case_id, familie
             captured_arguments = json.loads(complete[0]["arguments"])
             assert captured_arguments == arguments, (path, case_id)
             found[path.parent.name] = "".join(chunk.get("normal_text", "") for chunk in case["chunks"])
-        if (version, root) == versions[-1]:
-            assert families <= set(found), (version, case_id, families - set(found))
         if not found:
             continue
         captures_found += 1
+        captured_families.update(found)
         assert set(found) <= families
         if case_id == "TOOLCALLING.streamv1.51.a":
             expected_normal_text = {
@@ -180,6 +180,9 @@ def test_retained_stream_regression_captures_preserve_semantics(case_id, familie
                 "muse_glimmer": "reasonafter",
             }
             assert found == {family: expected_normal_text[family] for family in found}
+    # Version archives are sparse: a newer release may capture only one family.
+    # Require every expected family in retained history, not in the global newest shard.
+    assert families <= captured_families, (case_id, families - captured_families)
     assert captures_found > 0
 
 
