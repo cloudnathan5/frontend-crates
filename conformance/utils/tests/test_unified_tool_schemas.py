@@ -3,6 +3,8 @@
 
 import ast
 import copy
+import json
+from decimal import Decimal
 import sys
 from pathlib import Path
 from types import SimpleNamespace
@@ -88,7 +90,10 @@ def _assert_golden_schemas(cases, tools):
         assert len(schemas) == len(offered_tools)
         for event in case["golden"]:
             if event["kind"] == "tool_call":
-                _assert_value(event["arguments"], schemas[event["name"]])
+                arguments = event["arguments"]
+                if isinstance(arguments, str):
+                    arguments = json.loads(arguments, parse_float=Decimal)
+                _assert_value(arguments, schemas[event["name"]])
 
 
 @pytest.mark.parametrize("family", G.FAMILIES)
