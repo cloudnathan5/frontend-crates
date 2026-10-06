@@ -6,4 +6,8 @@
 # fails CI. Entries that stop diverging fail as stale and must be removed.
 # Schema: family -> case ID -> check -> note and exact observed output.
 
-{}
+gemma4:
+  UNIFIED.arg_numeric_15_exponent.gemma4:
+    golden:
+      note: "TODO NUM-2 in numeric-failures.md: Gemma drops exponent-form arguments. Keep the numeric report red until the parser is fixed."
+      actual: "tool_call(get_weather, {})"
